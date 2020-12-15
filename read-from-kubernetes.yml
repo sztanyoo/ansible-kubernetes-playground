@@ -1,0 +1,44 @@
+- name: read data
+  hosts: localhost
+  gather_facts: no
+  become: no
+  tasks:
+    - name: Create a namespace
+      community.kubernetes.k8s:
+        kubeconfig: /tmp/kubeconfig
+        name: ansible-playground
+        kind: Namespace
+        state: present
+      register: playground_namespace
+    - name: Namespace details
+      debug:
+        msg: "{{ playground_namespace }}"
+    - name: Create a pod
+      community.kubernetes.k8s:
+        kubeconfig: /tmp/kubeconfig
+        state: present
+        namespace: ansible-playground
+        src: templates/pod.yml.j2
+      register: playground_pod
+    - name: Pod details
+      debug:
+        msg: "{{ playground_pod.result.status.phase }}"
+    - name: Create a configmap
+      community.kubernetes.k8s:
+        kubeconfig: /tmp/kubeconfig
+        state: present
+        namespace: ansible-playground
+        src: templates/configmap.yml.j2
+      register: playground_configmap
+    - name: configmap details
+      debug:
+        msg: "{{ playground_configmap }}"
+    - name: List configmaps
+      community.kubernetes.k8s_info:
+        kubeconfig: /tmp/kubeconfig
+        namespace: ansible-playground
+        kind: ConfigMap
+      register: playground_configmap_found
+    - name: Found configmap details
+      debug:
+        msg: "{{ playground_configmap_found }}"
